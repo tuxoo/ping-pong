@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
@@ -13,13 +14,29 @@ import (
 )
 
 func Run(configPath string) {
+
+	dir, _ := os.Getwd()
+	logDir := fmt.Sprintf("%s/logs", dir)
+
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		err := os.Mkdir(logDir, 0755)
+		if err != nil {
+			return
+		}
+	}
+
+	logFile := fmt.Sprintf("%s/pp.log", logDir)
+
+	log, err := os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE, 0755)
+	logrus.SetOutput(log)
+
 	cfg, err := config.InitConfig(configPath)
 	if err != nil {
 		logrus.Fatalf("error occured durinng the initialization configs: %s", err.Error())
 	}
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		logrus.Println("pong")
+		logrus.Info("pong")
 	})
 	httpServer := server.NewHTTPServer(cfg)
 

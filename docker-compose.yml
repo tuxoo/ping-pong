@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  ping-pong:
+    container_name: ping-pong
+    build: ./
+    restart: on-failure
+    env_file:
+      - .env
+    ports:
+      - ${HTTP_SERVER_PORT}:${HTTP_SERVER_PORT}
+    volumes:
+      - ./logs:/home/src/logs
+    networks:
+      - net
+
+networks:
+  net:
+    name: net

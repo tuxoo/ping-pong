@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"ping-pong/internal/config"
-	"time"
 )
 
 type HTTPClient struct {
@@ -15,7 +14,7 @@ type HTTPClient struct {
 func NewHTTPClient(cfg *config.Config) *HTTPClient {
 	return &HTTPClient{
 		client: &http.Client{
-			Timeout: time.Second * 1,
+			Timeout: cfg.ClientConfig.Timeout,
 		},
 	}
 }
