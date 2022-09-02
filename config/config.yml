@@ -1,0 +1,10 @@
+http:
+  server:
+    host: localhost
+    port: 8888
+    maxHeaderMegabytes: 1
+    timeouts:
+      read: 5s
+      write: 10s
+  client:
+    timeout: 1s
