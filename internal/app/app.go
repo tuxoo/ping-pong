@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -11,10 +12,10 @@ import (
 	"ping-pong/internal/config"
 	"ping-pong/internal/server"
 	"syscall"
+	"time"
 )
 
 func Run(configPath string) {
-
 	dir, _ := os.Getwd()
 	logDir := fmt.Sprintf("%s/logs", dir)
 
@@ -35,9 +36,26 @@ func Run(configPath string) {
 		logrus.Fatalf("error occured durinng the initialization configs: %s", err.Error())
 	}
 
+	httpClient := client.NewHTTPClient(cfg)
+
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		logrus.Info("pong")
+		go func() {
+			time.Sleep(1 * time.Second)
+			url := fmt.Sprintf("%s:%s/ping", cfg.AppConfig.PingPongServiceUrl, cfg.AppConfig.PingPongServicePort)
+			resp := httpClient.GetString(url)
+			logrus.Info(resp)
+		}()
+
+		body, err := json.Marshal("pong")
+		if err != nil {
+			// Handle Error
+		}
+
+		if _, err := w.Write(body); err != nil {
+			// Handle Error
+		}
 	})
+
 	httpServer := server.NewHTTPServer(cfg)
 
 	go func() {
@@ -45,10 +63,6 @@ func Run(configPath string) {
 			logrus.Errorf("error occured while running http server: %s", err.Error())
 		}
 	}()
-
-	httpClient := client.NewHTTPClient(cfg)
-	str := httpClient.GetString("http://localhost:8000/api/v1/ping")
-	logrus.Print(str)
 
 	logrus.Printf("Ping Pong application has started on [%s] port", cfg.ServerConfig.Port)
 

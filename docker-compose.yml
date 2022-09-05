@@ -1,16 +1,31 @@
 version: "3.8"
 
 services:
-  ping-pong:
-    container_name: ping-pong
+  first-player:
+    container_name: first-player
     build: ./
     restart: on-failure
-    env_file:
-      - .env
+    environment:
+      HTTP_SERVER_PORT: 8000
+      PING_PONG_SERVICE_PORT: 9000
     ports:
-      - ${HTTP_SERVER_PORT}:${HTTP_SERVER_PORT}
+      - 8000:8000
     volumes:
-      - ./logs:/home/src/logs
+      - ./first/logs:/home/src/logs
+    networks:
+      - net
+
+  second-player:
+    container_name: second-player
+    build: ./
+    restart: on-failure
+    environment:
+      HTTP_SERVER_PORT: 9000
+      PING_PONG_SERVICE_PORT: 8000
+    ports:
+      - 9000:9000
+    volumes:
+      - ./second/logs:/home/src/logs
     networks:
       - net
 

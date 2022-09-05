@@ -10,12 +10,14 @@ const (
 	defaultHttpPort           = "8888"
 	defaultHttpRWTimeout      = 10 * time.Second
 	defaultMaxHeaderMegabytes = 1
+	defaultPingPongServiceUrl = "http://host.docker.internal"
 )
 
 type (
 	Config struct {
 		ServerConfig HTTPServerConfig
 		ClientConfig HTTPClientConfig
+		AppConfig    ApplicationConfig
 	}
 
 	HTTPServerConfig struct {
@@ -28,6 +30,11 @@ type (
 
 	HTTPClientConfig struct {
 		Timeout time.Duration `mapstructure:"timeout"`
+	}
+
+	ApplicationConfig struct {
+		PingPongServiceUrl  string
+		PingPongServicePort string
 	}
 )
 
@@ -58,6 +65,7 @@ func preDefaults() {
 	viper.SetDefault("http.server.max_header_megabytes", defaultMaxHeaderMegabytes)
 	viper.SetDefault("http.server.timeouts.read", defaultHttpRWTimeout)
 	viper.SetDefault("http.server.timeouts.write", defaultHttpRWTimeout)
+	viper.SetDefault("application.ping-pong-service-url", defaultPingPongServiceUrl)
 }
 func parseConfigFile(filepath string) error {
 	path := strings.Split(filepath, "/")
@@ -85,7 +93,15 @@ func parseServerEnv() error {
 }
 
 func parseClientEnv() error {
-	return viper.BindEnv("http.client.timeout", "HTTP_CLIENT_TIMEOUT")
+	if err := viper.BindEnv("http.client.timeout", "HTTP_CLIENT_TIMEOUT"); err != nil {
+		return err
+	}
+
+	if err := viper.BindEnv("application.ping-pong-service-url", "PING_PONG_SERVICE_URL"); err != nil {
+		return err
+	}
+
+	return viper.BindEnv("application.ping-pong-service-port", "PING_PONG_SERVICE_PORT")
 }
 
 func unmarshalConfig(cfg *Config) error {
@@ -109,4 +125,7 @@ func setFromEnv(cfg *Config) {
 	cfg.ServerConfig.Port = viper.GetString("http.server.port")
 
 	cfg.ClientConfig.Timeout = viper.GetDuration("http.client.timeout")
+
+	cfg.AppConfig.PingPongServiceUrl = viper.GetString("application.ping-pong-service-url")
+	cfg.AppConfig.PingPongServicePort = viper.GetString("application.ping-pong-service-port")
 }

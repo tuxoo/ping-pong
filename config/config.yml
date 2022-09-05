@@ -8,3 +8,6 @@ http:
       write: 10s
   client:
     timeout: 1s
+
+application:
+  ping-pong-service-url: http://host.docker.internal
